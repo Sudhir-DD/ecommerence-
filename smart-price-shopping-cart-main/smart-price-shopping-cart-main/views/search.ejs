@@ -1,0 +1,39 @@
+<%- include('partials/head', { title: (searchQuery ? searchQuery + ' - ' : '') + 'Search - Shopping Cart' }) %>
+<%- include('partials/header') %>
+
+<h1 class="page-title">
+    <% if (searchQuery) { %>
+        Results for “<%= searchQuery %>”
+    <% } else { %>
+        Search
+    <% } %>
+</h1>
+
+<% if (products.length > 0) { %>
+    <%- include('partials/sortBar', { count: products.length }) %>
+
+    <div class="products">
+        <% products.forEach(function (p) { %>
+            <%- include('partials/productCard', { p: p }) %>
+        <% }) %>
+    </div>
+<% } else { %>
+    <div class="empty-search">
+        <p class="muted">
+            <% if (searchQuery) { %>
+                No products match “<%= searchQuery %>”. Try a brand like “Samsung” or a category below.
+            <% } else { %>
+                Type a product, brand or category in the search bar, or browse a category below.
+            <% } %>
+        </p>
+
+        <div class="category-chips">
+            <% categories.forEach(function (c) { %>
+                <a class="chip" href="/category/<%= c.slug %>"><%= c.label %></a>
+            <% }) %>
+        </div>
+    </div>
+<% } %>
+
+<%- include('partials/footer') %>
+<%- include('partials/foot') %>

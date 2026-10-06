@@ -1,0 +1,18 @@
+<%
+    var opts = typeof sortOptions !== 'undefined' ? sortOptions : [];
+    var current = typeof sort !== 'undefined' ? sort : 'featured';
+%>
+<div class="toolbar">
+    <span class="muted"><%= count %> product<%= count === 1 ? '' : 's' %></span>
+
+    <% if (opts.length) { %>
+    <label class="sort-control">
+        <span class="muted">Sort by</span>
+        <select id="sortSelect">
+            <% opts.forEach(function (o) { %>
+                <option value="<%= o.key %>" <%= o.key === current ? 'selected' : '' %>><%= o.label %></option>
+            <% }) %>
+        </select>
+    </label>
+    <% } %>
+</div>

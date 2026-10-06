@@ -1,0 +1,4 @@
+node_modules/
+db/shop.db
+db/shop.db-journal
+.env

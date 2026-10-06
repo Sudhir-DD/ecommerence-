@@ -1,0 +1,14 @@
+<%- include('partials/head', { title: 'Something went wrong - Shopping Cart' }) %>
+<%- include('partials/header') %>
+
+<div class="not-found">
+    <div class="not-found-code"><%= status %></div>
+    <h1><%= status === 500 ? 'Something went wrong' : 'Invalid request' %></h1>
+    <p class="muted">
+        <%= status === 500 ? "That's on us - please try again in a moment." : "We couldn't understand that request." %>
+    </p>
+    <a class="btn btn-primary btn-link" href="/">← Back to Home</a>
+</div>
+
+<%- include('partials/footer') %>
+<%- include('partials/foot') %>

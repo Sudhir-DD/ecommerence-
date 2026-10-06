@@ -1,0 +1,120 @@
+<%- include('partials/head', { title: 'Your Cart - Shopping Cart' }) %>
+<%- include('partials/header') %>
+
+<div class="page-wrap">
+    <h1 class="page-title">Your Cart</h1>
+
+    <div id="cartList"></div>
+
+    <div id="cartSummary"></div>
+</div>
+
+<%- include('partials/footer') %>
+<%- include('partials/foot') %>
+
+<script>
+    let cartState = <%- JSON.stringify({ items: items, total: total }).replace(/</g, '\\u003c') %>;
+
+    function formatPrice(n) {
+        return '₹' + n.toLocaleString('en-IN');
+    }
+
+    function renderCart() {
+        const listEl = document.getElementById('cartList');
+        const summaryEl = document.getElementById('cartSummary');
+
+        if (cartState.items.length === 0) {
+            listEl.innerHTML = '<p class="empty-state">Your cart is empty. <a href="/">Go shopping →</a></p>';
+            summaryEl.innerHTML = '';
+            return;
+        }
+
+        listEl.innerHTML = cartState.items
+            .map(function (item) {
+                return (
+                    '<div class="cart-item" data-item-id="' + item.id + '">' +
+                        '<img src="/' + item.image + '" alt="' + item.name + '">' +
+                        '<div class="info">' +
+                            '<h2>' + item.name + '</h2>' +
+                            '<p>' + formatPrice(item.price) + ' each</p>' +
+                        '</div>' +
+                        '<div class="qty-control">' +
+                            '<button data-qty-dec>−</button>' +
+                            '<span>' + item.quantity + '</span>' +
+                            '<button data-qty-inc>+</button>' +
+                        '</div>' +
+                        '<p class="price">' + formatPrice(item.price * item.quantity) + '</p>' +
+                        '<button class="btn btn-outline" data-remove>Remove</button>' +
+                    '</div>'
+                );
+            })
+            .join('');
+
+        summaryEl.innerHTML =
+            '<div class="cart-summary">' +
+                '<span>Total: ' + formatPrice(cartState.total) + '</span>' +
+                '<button class="btn btn-primary" id="checkoutBtn">Checkout</button>' +
+            '</div>';
+
+        document.getElementById('checkoutBtn').addEventListener('click', checkout);
+    }
+
+    function updateQuantity(itemId, quantity) {
+        api('/api/cart/' + itemId, { method: 'PATCH', body: { quantity: quantity } })
+            .then(function (data) {
+                cartState = data;
+                renderCart();
+                updateCartBadge();
+            })
+            .catch(function (err) {
+                showToast(err.message);
+            });
+    }
+
+    function removeItem(itemId) {
+        api('/api/cart/' + itemId, { method: 'DELETE' })
+            .then(function (data) {
+                cartState = data;
+                renderCart();
+                updateCartBadge();
+                showToast('Item removed from cart.');
+            })
+            .catch(function (err) {
+                showToast(err.message);
+            });
+    }
+
+    function checkout() {
+        api('/api/checkout', { method: 'POST' })
+            .then(function () {
+                showToast('Order placed successfully');
+                setTimeout(function () {
+                    window.location.href = '/orders';
+                }, 900);
+            })
+            .catch(function (err) {
+                showToast(err.message);
+            });
+    }
+
+    document.getElementById('cartList').addEventListener('click', function (e) {
+        const row = e.target.closest('[data-item-id]');
+
+        if (!row) {
+            return;
+        }
+
+        const itemId = row.getAttribute('data-item-id');
+        const item = cartState.items.find(function (i) { return String(i.id) === itemId; });
+
+        if (e.target.hasAttribute('data-qty-inc')) {
+            updateQuantity(itemId, item.quantity + 1);
+        } else if (e.target.hasAttribute('data-qty-dec')) {
+            updateQuantity(itemId, item.quantity - 1);
+        } else if (e.target.hasAttribute('data-remove')) {
+            removeItem(itemId);
+        }
+    });
+
+    renderCart();
+</script>

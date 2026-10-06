@@ -1,0 +1,111 @@
+<%- include('partials/head', { title: 'Create Account - Shopping Cart' }) %>
+<%- include('partials/header') %>
+
+<div class="auth-page">
+    <div class="auth-box">
+        <div class="auth-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </div>
+        <h1>Create your account</h1>
+        <p class="form-hint">We'll text a one-time code to your mobile number to verify it.</p>
+
+        <div class="auth-step" id="detailsStep">
+            <div class="form-row">
+                <label for="name">Full name</label>
+                <input type="text" id="name" autocomplete="name" required>
+            </div>
+
+            <div class="form-row">
+                <label for="username">Username</label>
+                <input type="text" id="username" autocomplete="username" required>
+            </div>
+
+            <div class="form-row">
+                <label for="email">Email address</label>
+                <input type="email" id="email" autocomplete="email" required>
+            </div>
+
+            <div class="form-row">
+                <label for="mobile">Mobile number</label>
+                <input type="tel" id="mobile" pattern="[0-9]{10}" maxlength="10" inputmode="numeric"
+                       autocomplete="tel-national" placeholder="10 digits" required>
+            </div>
+
+            <button class="btn btn-primary" type="button" id="sendOtpBtn">Send OTP</button>
+        </div>
+
+        <div class="auth-step" id="otpStep">
+            <input type="text" id="otpInput" placeholder="Enter 6-digit OTP" maxlength="6" inputmode="numeric"
+                   autocomplete="one-time-code" aria-label="One-time code" disabled>
+            <button class="btn btn-primary" type="button" id="verifyOtpBtn" disabled>Verify &amp; Create Account</button>
+        </div>
+
+        <p class="form-message" id="signupMessage" role="status"></p>
+
+        <div class="auth-divider"></div>
+        <div class="auth-links auth-links-center">
+            <span class="muted">Already have an account?</span>
+            <a href="/login">Log in</a>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>
+<%- include('partials/foot') %>
+
+<script>
+    const messageEl = document.getElementById('signupMessage');
+
+    function setMessage(text, ok) {
+        messageEl.className = 'form-message ' + (ok ? 'success' : 'error');
+        messageEl.textContent = text;
+    }
+
+    document.getElementById('sendOtpBtn').addEventListener('click', function () {
+        const body = {
+            name: document.getElementById('name').value.trim(),
+            username: document.getElementById('username').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            mobile: document.getElementById('mobile').value.trim()
+        };
+
+        api('/api/auth/signup/request-otp', { method: 'POST', body: body })
+            .then(function (data) {
+                setMessage('OTP sent to your mobile.', true);
+                document.getElementById('otpInput').disabled = false;
+                document.getElementById('verifyOtpBtn').disabled = false;
+
+                if (data.demoOtp) {
+                    showToast('Demo OTP: ' + data.demoOtp);
+                }
+            })
+            .catch(function (err) {
+                setMessage(err.message, false);
+            });
+    });
+
+    document.getElementById('verifyOtpBtn').addEventListener('click', function () {
+        const mobile = document.getElementById('mobile').value.trim();
+        const otp = document.getElementById('otpInput').value.trim();
+
+        api('/api/auth/signup/verify-otp', { method: 'POST', body: { mobile: mobile, otp: otp } })
+            .then(function () {
+                setMessage('Account created successfully! Redirecting...', true);
+                setTimeout(function () {
+                    window.location.href = '/';
+                }, 1200);
+            })
+            .catch(function (err) {
+                setMessage(err.message, false);
+            });
+    });
+
+    // Enter in a field triggers that step's button.
+    [['mobile', 'sendOtpBtn'], ['otpInput', 'verifyOtpBtn']].forEach(function (pair) {
+        document.getElementById(pair[0]).addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                document.getElementById(pair[1]).click();
+            }
+        });
+    });
+</script>

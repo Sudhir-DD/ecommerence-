@@ -1,0 +1,87 @@
+<%- include('partials/head', { title: 'Login - Shopping Cart' }) %>
+<%- include('partials/header') %>
+
+<div class="auth-page">
+    <div class="auth-box">
+        <div class="auth-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>
+        <h1>Welcome back</h1>
+        <p class="form-hint">Enter your mobile number and we'll text you a one-time code.</p>
+
+        <div class="auth-step">
+            <input type="tel" id="mobile" placeholder="10-digit mobile number" pattern="[0-9]{10}" maxlength="10"
+                   inputmode="numeric" autocomplete="tel-national" aria-label="Mobile number" required>
+            <button class="btn btn-primary" type="button" id="sendOtpBtn">Send OTP</button>
+        </div>
+
+        <div class="auth-step">
+            <input type="text" id="otpInput" placeholder="Enter 6-digit OTP" maxlength="6" inputmode="numeric"
+                   autocomplete="one-time-code" aria-label="One-time code" disabled>
+            <button class="btn btn-primary" type="button" id="verifyOtpBtn" disabled>Verify &amp; Login</button>
+        </div>
+
+        <p class="form-message" id="loginMessage" role="status"></p>
+
+        <div class="auth-divider"></div>
+        <div class="auth-links auth-links-center">
+            <span class="muted">New here?</span>
+            <a href="/signup">Create an account</a>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>
+<%- include('partials/foot') %>
+
+<script>
+    const nextUrl = <%- JSON.stringify(next || '/').replace(/</g, '\\u003c') %>;
+    const messageEl = document.getElementById('loginMessage');
+
+    function setMessage(text, ok) {
+        messageEl.className = 'form-message ' + (ok ? 'success' : 'error');
+        messageEl.textContent = text;
+    }
+
+    document.getElementById('sendOtpBtn').addEventListener('click', function () {
+        const mobile = document.getElementById('mobile').value.trim();
+
+        api('/api/auth/login/request-otp', { method: 'POST', body: { mobile: mobile } })
+            .then(function (data) {
+                setMessage('OTP sent to your mobile.', true);
+                document.getElementById('otpInput').disabled = false;
+                document.getElementById('verifyOtpBtn').disabled = false;
+
+                if (data.demoOtp) {
+                    showToast('Demo OTP: ' + data.demoOtp);
+                }
+            })
+            .catch(function (err) {
+                setMessage(err.message, false);
+            });
+    });
+
+    document.getElementById('verifyOtpBtn').addEventListener('click', function () {
+        const mobile = document.getElementById('mobile').value.trim();
+        const otp = document.getElementById('otpInput').value.trim();
+
+        api('/api/auth/login/verify-otp', { method: 'POST', body: { mobile: mobile, otp: otp } })
+            .then(function (data) {
+                setMessage('', true);
+                showToast('Login successful! Welcome ' + data.user.name);
+                window.location.href = nextUrl;
+            })
+            .catch(function (err) {
+                setMessage(err.message, false);
+            });
+    });
+
+    // Enter in a field triggers that step's button.
+    [['mobile', 'sendOtpBtn'], ['otpInput', 'verifyOtpBtn']].forEach(function (pair) {
+        document.getElementById(pair[0]).addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                document.getElementById(pair[1]).click();
+            }
+        });
+    });
+</script>

@@ -1,0 +1,21 @@
+<%- include('partials/head', { title: meta.label + ' - Shopping Cart' }) %>
+<%- include('partials/header') %>
+
+<h1 class="page-title"><%= meta.label %></h1>
+
+<p class="page-subnav">
+    <a href="/category/<%= nextSlug %>">
+        Next: <%= nextMeta.label %> &rarr;
+    </a>
+</p>
+
+<%- include('partials/sortBar', { count: products.length }) %>
+
+<div class="products">
+    <% products.forEach(function (p) { %>
+        <%- include('partials/productCard', { p: p }) %>
+    <% }) %>
+</div>
+
+<%- include('partials/footer') %>
+<%- include('partials/foot') %>

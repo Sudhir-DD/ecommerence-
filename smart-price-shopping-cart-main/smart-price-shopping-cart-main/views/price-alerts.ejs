@@ -1,0 +1,135 @@
+<%- include('partials/head', { title: 'My Price Alerts - Shopping Cart' }) %>
+<%- include('partials/header') %>
+
+<div class="page-wrap">
+    <h1 class="page-title">My Price Alerts</h1>
+
+    <div id="alertList"></div>
+</div>
+
+<%- include('partials/footer') %>
+<%- include('partials/foot') %>
+
+<script>
+    let alertState = <%- JSON.stringify(alerts).replace(/</g, '\\u003c') %>;
+
+    function formatPrice(n) {
+        return '₹' + n.toLocaleString('en-IN');
+    }
+
+    function aiWindow(eta) {
+        if (eta.expectedDays !== null) {
+            return eta.window;
+        }
+
+        if (eta.optimisticDays !== null) {
+            return 'only in the optimistic case (~' + Math.ceil(eta.optimisticDays / 7) + ' wk)';
+        }
+
+        return 'unlikely within 3 months';
+    }
+
+    function progressPercent(alert) {
+        if (alert.reached) {
+            return 100;
+        }
+
+        const pct = (alert.target_price / alert.current_price) * 100;
+        return Math.max(4, Math.min(96, Math.round(pct)));
+    }
+
+    function renderAlerts() {
+        const listEl = document.getElementById('alertList');
+
+        if (alertState.length === 0) {
+            listEl.innerHTML =
+                '<p class="empty-state">No price alerts yet. Set one from any product page. <a href="/">Go shopping &rarr;</a></p>';
+            return;
+        }
+
+        listEl.innerHTML = alertState
+            .map(function (alert) {
+                const statusBadge = alert.reached
+                    ? '<span class="alert-badge alert-badge-reached">Target reached</span>'
+                    : '<span class="alert-badge alert-badge-active">Watching</span>';
+
+                const statusLine = alert.reached
+                    ? '<p>' + formatPrice(alert.current_price) + ' is at or below your target of ' + formatPrice(alert.target_price) + '</p>'
+                    : '<p>Notify me at ' + formatPrice(alert.target_price) + ' or below (currently ' + formatPrice(alert.current_price) + ')</p>';
+
+                const aiLine = alert.eta && !alert.reached
+                    ? '<p class="ai-eta">AI Forecast: expected target range <strong>' + aiWindow(alert.eta) + '</strong></p>'
+                    : '';
+
+                return (
+                    '<div class="alert-card" data-alert-id="' + alert.id + '" data-product-id="' + alert.product_id + '" ' +
+                        'data-product-name="' + alert.name + '" data-current-price="' + alert.current_price + '" ' +
+                        'data-target-price="' + alert.target_price + '">' +
+                        '<img src="/' + alert.image + '" alt="' + alert.name + '">' +
+                        '<div class="info">' +
+                            '<h2><a class="name-link" href="/product/' + alert.product_id + '">' + alert.name + '</a></h2>' +
+                            statusLine +
+                            aiLine +
+                            statusBadge +
+                            '<div class="alert-progress"><div class="alert-progress-bar" style="width:' + progressPercent(alert) + '%"></div></div>' +
+                        '</div>' +
+                        '<div class="alert-actions">' +
+                            '<a class="btn btn-outline btn-link" href="/product/' + alert.product_id + '">View trend</a>' +
+                            '<button class="btn btn-outline" data-edit-alert>Edit target</button>' +
+                            '<button class="btn btn-ghost" data-remove-alert>Remove</button>' +
+                        '</div>' +
+                    '</div>'
+                );
+            })
+            .join('');
+    }
+
+    function removeAlert(alertId) {
+        api('/api/price-alerts/' + alertId, { method: 'DELETE' })
+            .then(function (data) {
+                alertState = data.alerts;
+                renderAlerts();
+                updateAlertBadge();
+                showToast('Price alert removed.');
+            })
+            .catch(function (err) {
+                showToast(err.message);
+            });
+    }
+
+    function onPriceAlertsUpdated(alerts) {
+        alertState = alerts;
+        renderAlerts();
+    }
+
+    document.getElementById('alertList').addEventListener('click', function (e) {
+        const row = e.target.closest('[data-alert-id]');
+
+        if (!row) {
+            return;
+        }
+
+        if (e.target.hasAttribute('data-remove-alert')) {
+            removeAlert(row.getAttribute('data-alert-id'));
+        } else if (e.target.hasAttribute('data-edit-alert')) {
+            openPriceAlertModal({
+                productId: row.getAttribute('data-product-id'),
+                name: row.getAttribute('data-product-name'),
+                currentPrice: Number(row.getAttribute('data-current-price')),
+                prefillTarget: row.getAttribute('data-target-price')
+            });
+        }
+    });
+
+    renderAlerts();
+
+    const newlyReachedCount = <%- JSON.stringify(newlyReachedCount) %>;
+    if (newlyReachedCount > 0) {
+        showToast(
+            newlyReachedCount === 1
+                ? 'One of your price alerts hit its target!'
+                : newlyReachedCount + ' of your price alerts hit their target!'
+        );
+        document.getElementById('alertBadge').hidden = true;
+    }
+</script>

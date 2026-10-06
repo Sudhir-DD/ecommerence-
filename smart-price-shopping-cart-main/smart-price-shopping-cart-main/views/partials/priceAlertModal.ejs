@@ -1,0 +1,25 @@
+<div class="modal-overlay" id="priceAlertModal">
+    <div class="modal-card">
+        <button type="button" class="modal-close" id="priceAlertModalClose" aria-label="Close">&times;</button>
+
+        <div class="modal-icon">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        </div>
+        <h2 id="priceAlertModalTitle">Set a Price Alert</h2>
+        <p class="modal-current-price">
+            Currently <strong id="priceAlertModalCurrentPrice">₹0</strong>
+        </p>
+
+        <div class="modal-input-row">
+            <span class="currency">₹</span>
+            <input type="number" id="priceAlertModalInput" min="1" step="1" placeholder="Target price" inputmode="numeric">
+        </div>
+
+        <p class="modal-hint">We'll notify you the moment the price drops to this amount or below.</p>
+
+        <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" id="priceAlertModalCancel">Cancel</button>
+            <button type="button" class="btn btn-primary" id="priceAlertModalSubmit">Set Alert</button>
+        </div>
+    </div>
+</div>

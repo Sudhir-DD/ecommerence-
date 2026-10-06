@@ -1,0 +1,9 @@
+node_modules
+db/shop.db
+db/shop.db-journal
+.git
+.gitignore
+*.md
+Dockerfile
+.dockerignore
+Jenkinsfile

@@ -1,0 +1,104 @@
+<%- include('partials/head', { title: product.name + ' - Price Trend & Alerts - Shopping Cart' }) %>
+<%- include('partials/header') %>
+
+<div class="pd-wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span>/</span>
+        <a href="/category/<%= product.category %>"><%= meta.label %></a>
+        <span>/</span>
+        <span class="current"><%= product.name %></span>
+    </nav>
+
+    <section class="pd-top">
+        <div class="pd-image panel">
+            <img src="/<%= product.image %>" alt="<%= product.name %>">
+        </div>
+
+        <div class="pd-info panel">
+            <h1><%= product.name %></h1>
+            <p class="desc">
+                <%= product.description %>
+                <% if (product.rating) { %>
+                    &nbsp;·&nbsp;<span class="stars"><%= '★'.repeat(product.rating) + '☆'.repeat(5 - product.rating) %></span>
+                <% } %>
+            </p>
+
+            <div class="pd-price-row">
+                <span class="pd-price" id="pdPrice">₹<%= product.price.toLocaleString('en-IN') %></span>
+                <span class="delta-pill" id="pdDelta" hidden></span>
+            </div>
+
+            <div class="verdict" id="pdVerdict" hidden></div>
+
+            <div class="product-actions pd-actions">
+                <button class="btn btn-outline" data-add-to-cart
+                        data-product-id="<%= product.id %>" data-product-name="<%= product.name %>">Add to Cart</button>
+                <button class="btn btn-accent" data-buy-now
+                        data-product-id="<%= product.id %>" data-product-name="<%= product.name %>">Buy Now</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="pd-grid">
+        <div class="panel chart-panel">
+            <div class="panel-head">
+                <h2>Price Trend</h2>
+                <div class="range-tabs" id="rangeTabs" role="tablist" aria-label="History range">
+                    <button type="button" data-days="7">7D</button>
+                    <button type="button" data-days="30">30D</button>
+                    <button type="button" class="active" data-days="90">90D</button>
+                </div>
+            </div>
+
+            <div class="chart" id="chart" aria-live="polite">
+                <p class="muted chart-loading">Loading price history…</p>
+            </div>
+
+            <div class="legend" id="chartLegend"></div>
+            <div class="stats-row" id="statsRow"></div>
+        </div>
+
+        <aside class="side">
+            <div class="panel alert-panel" id="alertPanel">
+                <div class="panel-head">
+                    <h2>Smart Price Alert</h2>
+                    <span class="status-pill off" id="alertPill">Price Alert: OFF</span>
+                </div>
+
+                <p class="muted" id="alertLead">Get notified the moment this product reaches your target price.</p>
+
+                <div class="target-input">
+                    <span class="currency">₹</span>
+                    <input type="number" id="targetInput" min="1" step="1" inputmode="numeric" placeholder="Your target price"
+                           aria-label="Target price">
+                </div>
+
+                <div class="chips" id="targetChips"></div>
+                <p class="muted small" id="targetPreview"></p>
+
+                <div class="alert-buttons">
+                    <button type="button" class="btn btn-primary" id="alertSave">Set alert</button>
+                    <button type="button" class="btn btn-ghost" id="alertOff" hidden>Turn off</button>
+                </div>
+            </div>
+
+            <div class="panel ai-panel" id="aiPanel">
+                <div class="panel-head">
+                    <h2>AI Price Prediction</h2>
+                    <span class="conf-pill" id="aiConf" hidden></span>
+                </div>
+                <div id="aiBody"><p class="muted">Analysing price history…</p></div>
+                <p class="disclaimer" id="aiNote"></p>
+            </div>
+        </aside>
+    </section>
+</div>
+
+<%- include('partials/footer') %>
+<%- include('partials/foot') %>
+
+<script>
+    window.PRODUCT = <%- JSON.stringify({ id: product.id, name: product.name, price: product.price }).replace(/</g, '\\u003c') %>;
+</script>
+<script src="/public/js/product.js"></script>

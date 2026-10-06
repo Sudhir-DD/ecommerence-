@@ -1,0 +1,33 @@
+<%- include('partials/head', { title: 'Your Orders - Shopping Cart' }) %>
+<%- include('partials/header') %>
+
+<div class="page-wrap">
+    <h1 class="page-title">Orders &amp; Returns</h1>
+
+    <% if (orders.length === 0) { %>
+        <p class="empty-state">No orders placed yet. <a href="/">Start shopping →</a></p>
+    <% } else { %>
+        <% orders.forEach(function (order) { %>
+            <div class="order-card">
+                <div class="order-head">
+                    <span>Order #<%= order.id %> · <%= new Date(order.created_at + ' UTC').toLocaleString() %></span>
+                    <span>₹<%= order.total.toLocaleString('en-IN') %></span>
+                </div>
+
+                <% order.items.forEach(function (item) { %>
+                    <div class="order-line">
+                        <img src="/<%= item.image %>" alt="<%= item.name %>">
+                        <div class="info">
+                            <div><%= item.name %></div>
+                            <div class="desc">Qty: <%= item.quantity %> × ₹<%= item.price.toLocaleString('en-IN') %></div>
+                        </div>
+                        <div class="price">₹<%= (item.price * item.quantity).toLocaleString('en-IN') %></div>
+                    </div>
+                <% }) %>
+            </div>
+        <% }) %>
+    <% } %>
+</div>
+
+<%- include('partials/footer') %>
+<%- include('partials/foot') %>

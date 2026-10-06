@@ -1,0 +1,18 @@
+{
+  "name": "shopping-cart",
+  "version": "1.0.0",
+  "description": "Shopping cart demo app (Express + EJS + SQLite)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2"
+  }
+}
